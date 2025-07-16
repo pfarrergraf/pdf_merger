@@ -1,36 +1,36 @@
 # utils.py
-import pythoncom
+
 import os
+import pythoncom
 from docx2pdf import convert as docx_to_pdf
 import win32com.client
 from PyPDF2 import PdfMerger
 
-# email
-import smtplib
-from email.message import EmailMessage
-
 def convert_docx(input_path: str, output_path: str) -> bool:
-    """Convert a .docx to .pdf. Returns True on success."""
-# Initialize COM in this thread
-    pythoncom.CoInitialize()
+    """
+    Convert a .docx to .pdf via Word COM. Returns True on success.
+    """
+    pythoncom.CoInitialize()      # COM initialisieren
     try:
+        # docx2pdf nutzt Word COM unter der Haube
         docx_to_pdf(input_path, output_path)
         return True
     except Exception as e:
         print(f"[!] DOCX→PDF failed: {e}")
         return False
     finally:
-        pythoncom.CoInitialize()
-
+        pythoncom.CoUninitialize()  # COM wieder freigeben
 
 def convert_xlsx(input_path: str, output_path: str) -> bool:
-    """Convert .xlsx to .pdf via Excel COM."""
+    """
+    Convert .xlsx to .pdf via Excel COM. Returns True on success.
+    """
     pythoncom.CoInitialize()
     try:
         excel = win32com.client.Dispatch("Excel.Application")
         excel.Visible = False
         wb = excel.Workbooks.Open(os.path.abspath(input_path))
-        wb.ExportAsFixedFormat(0, os.path.abspath(output_path))  # 0=PDF
+        wb.ExportAsFixedFormat(0, os.path.abspath(output_path))
         wb.Close(False)
         excel.Quit()
         return True
@@ -38,11 +38,12 @@ def convert_xlsx(input_path: str, output_path: str) -> bool:
         print(f"[!] XLSX→PDF failed: {e}")
         return False
     finally:
-        pythoncom.CoInitialize()
-
+        pythoncom.CoUninitialize()
 
 def merge_pdfs(pdf_paths: list[str], output_path: str) -> bool:
-    """Merge list of PDFs in order, write to output_path."""
+    """
+    Merge a list of PDFs into a single PDF at output_path.
+    """
     try:
         merger = PdfMerger()
         for p in pdf_paths:
@@ -54,20 +55,23 @@ def merge_pdfs(pdf_paths: list[str], output_path: str) -> bool:
         print(f"[!] PDF merge failed: {e}")
         return False
 
-
-
-def send_email(subject: str, body: str,
-               from_addr: str, to_addr: str,
-               smtp_server: str, smtp_port: int,
-               username: str, password: str):
-    msg = EmailMessage()
-    msg["Subject"] = subject
-    msg["From"] = from_addr
-    msg["To"] = to_addr
-    msg.set_content(body)
-
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.starttls()
-        server.login(username, password)
-        server.send_message(msg)
-        print("[✉️] Email sent!")
+def dummy_convert(input_path: str, output_path: str) -> bool:
+    """
+    Dummy-Converter: Erstellt eine minimale, leere PDF-Datei.
+    Damit kannst du Merge- und Email-Logik testen, ohne Word/Excel.
+    """
+    try:
+        # Eine sehr einfache PDF-Grundstruktur
+        pdf_content = (
+            b"%PDF-1.4\n"
+            b"%\xe2\xe3\xcf\xd3\n"
+            b"1 0 obj<<>>endobj\n"
+            b"trailer<<>>\n"
+            b"%%EOF\n"
+        )
+        with open(output_path, "wb") as f:
+            f.write(pdf_content)
+        return True
+    except Exception as e:
+        print(f"[!] dummy_convert failed: {e}")
+        return False
