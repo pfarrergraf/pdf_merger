@@ -1,0 +1,5 @@
+watchdog
+docx2pdf
+PyPDF2
+pywin32
+python-dotenv
