@@ -1,0 +1,11 @@
+{
+  "6840": {
+    "name": "Kirchengemeinde Oberlahnstein",
+    "year": 2025,
+    "files": [
+      { "pattern": "6840_Budget.xlsx", "convert": "xlsx" },
+      { "pattern": "6840_Entwurf.docx", "convert": "docx" }
+    ],
+    "merge_order": ["6840_Entwurf.pdf", "6840_Budget.pdf"]
+  }
+}
